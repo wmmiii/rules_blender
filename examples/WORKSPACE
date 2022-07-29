@@ -1,0 +1,8 @@
+local_repository(
+    name = "rules_blender",
+    path = "../",
+)
+
+load("@rules_blender//:repositories.bzl", "rules_blender_dependencies")
+
+rules_blender_dependencies()
