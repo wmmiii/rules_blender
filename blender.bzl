@@ -2,11 +2,12 @@
 Defines rules to perform Blender render actions.
 """
 
-def render_frame(ctx, renderer, blend, out):
-    cmd_tpl = "{renderer} -b {blend} -f 0 -o {out}"
+def render_frame(ctx, renderer, blend, frame, out):
+    cmd_tpl = "{renderer} -b {blend} -f {frame} -o {out}"
     cmd = cmd_tpl.format(
         renderer = renderer.path,
         blend = blend.path,
+        frame = frame,
         out = out.path,
     )
 
@@ -16,20 +17,26 @@ def render_frame(ctx, renderer, blend, out):
         command = cmd,
         mnemonic = "Blender",
         progress_message = "Rendering frame {frame} of {blend}".format(
-            frame = 0,
+            frame = frame,
             blend = blend.path,
         )
     )
 
 
 def _blender_image(ctx):
-    output_file = ctx.actions.declare_file(ctx.label.name + ".jpg")
+    frame = 0
+    out_name = "{name}_{frame}.jpg".format(
+        name = ctx.label.name,
+        frame = frame,
+    )
+    output_file = ctx.actions.declare_file(out_name)
 
-    render_frame(ctx, ctx.files._renderer[0], ctx.files.srcs[0], output_file)
+    render_frame(ctx, ctx.files._renderer[0], ctx.files.srcs[0], frame, output_file)
 
     return [
         DefaultInfo(files = depset([output_file])),
     ]
+
 
 blender_image = rule(
     implementation = _blender_image,
