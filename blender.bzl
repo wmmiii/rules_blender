@@ -38,19 +38,17 @@ def render_frame(
         blend,
         frame,
         out):
-    cmd_tpl = "{renderer} -b {blend} -o {out} -f {frame} -- --cycles-device CPU"
-    cmd = cmd_tpl.format(
-        renderer = renderer.path,
-        blend = blend.path,
-        out = out['blender_path'],
-        frame = frame,
-    )
-
-    ctx.actions.run_shell(
+    args = ctx.actions.args()
+    args.add("-b", blend.path)
+    args.add("-o", out['blender_path'])
+    args.add("-f", frame)
+    args.add("--")
+    args.add("--cycles-device", "CPU")
+    ctx.actions.run(
         outputs = [out['output_file']],
         inputs = [blend],
-        tools = [renderer],
-        command = cmd,
+        executable = renderer,
+        arguments = [args],
         mnemonic = "Blender",
         progress_message = "Rendering frame {frame} of {blend}".format(
             frame = frame,
@@ -118,19 +116,19 @@ def _blender_video(ctx):
 
     compositor = ctx.files._compositor[0]
 
-    cmd_tpl = "{compositor} -f image2 -framerate {framerate} -i {inputs} -c:v libx264 -crf 22 {out}"
-    cmd = cmd_tpl.format(
-        compositor = compositor.path,
-        framerate = ctx.attr.framerate,
-        inputs = inputs,
-        out = output_file.path,
-    )
+    args = ctx.actions.args()
+    args.add("-f", "image2")
+    args.add("-framerate", ctx.attr.framerate)
+    args.add("-i", inputs)
+    args.add("-c:v", "libx264")
+    args.add("-crf", "22")
+    args.add(output_file.path)
 
-    ctx.actions.run_shell(
+    ctx.actions.run(
         outputs = [output_file],
         inputs = frames,
-        tools = [compositor],
-        command = cmd,
+        executable = compositor,
+        arguments = [args],
         mnemonic = "FFmpeg",
     )
 
