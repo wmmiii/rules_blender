@@ -38,14 +38,24 @@ def render_frame(
         blend,
         frame,
         out):
+    """ Renders a single frame from a Blender .blend file.
+
+    Args:
+        ctx: The Bazel context.
+        renderer: The Blender executable.
+        blend: The .blend file to render.
+        frame: The frame number to render.
+        out: The output file dict generated with the `declare_output` function.
+    """
     args = ctx.actions.args()
     args.add("-b", blend.path)
-    args.add("-o", out['blender_path'])
+    args.add("-o", out["blender_path"])
     args.add("-f", frame)
     args.add("--")
     args.add("--cycles-device", "CPU")
+
     ctx.actions.run(
-        outputs = [out['output_file']],
+        outputs = [out["output_file"]],
         inputs = [blend],
         executable = renderer,
         arguments = [args],
@@ -70,7 +80,7 @@ def _blender_image(ctx):
     )
 
     return [
-        DefaultInfo(files = depset([out['output_file']])),
+        DefaultInfo(files = depset([out["output_file"]])),
     ]
 
 blender_image = rule(
