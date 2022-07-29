@@ -92,3 +92,78 @@ blender_image = rule(
         ),
     },
 )
+
+def _blender_video(ctx):
+    frames = []
+    for frame in range(ctx.attr.start_frame, ctx.attr.end_frame + 1):
+        out = declare_output(ctx, frame)
+
+        render_frame(
+            ctx,
+            ctx.files._renderer[0],
+            ctx.files.srcs[0],
+            frame,
+            out,
+        )
+
+        frames.append(out["output_file"])
+
+    inputs = "{dir}/{name}_%08d.png".format(
+        dir = frames[0].dirname,
+        name = ctx.label.name,
+    )
+
+    out_name = "{name}.mp4".format(name = ctx.label.name)
+    output_file = ctx.actions.declare_file(out_name)
+
+    compositor = ctx.files._compositor[0]
+
+    cmd_tpl = "{compositor} -f image2 -framerate {framerate} -i {inputs} -c:v libx264 -crf 22 {out}"
+    cmd = cmd_tpl.format(
+        compositor = compositor.path,
+        framerate = ctx.attr.framerate,
+        inputs = inputs,
+        out = output_file.path,
+    )
+
+    ctx.actions.run_shell(
+        outputs = [output_file],
+        inputs = frames,
+        tools = [compositor],
+        command = cmd,
+        mnemonic = "FFmpeg",
+    )
+
+    return [
+        DefaultInfo(files = depset([output_file])),
+    ]
+
+blender_video = rule(
+    implementation = _blender_video,
+    attrs = {
+        "srcs": attr.label(
+            allow_files = [".blend"],
+        ),
+        "start_frame": attr.int(
+            default = 0,
+        ),
+        "end_frame": attr.int(
+            mandatory = True,
+        ),
+        "framerate": attr.int(
+            mandatory = True,
+        ),
+        "_renderer": attr.label(
+            default = Label("@blender//:blender"),
+            allow_single_file = True,
+            executable = True,
+            cfg = "exec",
+        ),
+        "_compositor": attr.label(
+            default = Label("@ffmpeg//:ffmpeg"),
+            allow_single_file = True,
+            executable = True,
+            cfg = "exec",
+        ),
+    },
+)
