@@ -15,8 +15,8 @@ def declare_output(ctx, frame):
           blender_path: The path that can be passed into the -o argument of Blender.
     """
     frame_string = "{frame}".format(frame = frame)
-    for _i in range(0, 4):
-        if len(frame_string) >= 4:
+    for _i in range(0, 8):
+        if len(frame_string) >= 8:
             break
         else:
             frame_string = "0" + frame_string
@@ -26,7 +26,7 @@ def declare_output(ctx, frame):
         frame = frame_string,
     )
     output_file = ctx.actions.declare_file(out_name)
-    blender_path = output_file.path[:-8] + "####.png"
+    blender_path = output_file.path[:-12] + "########.png"
     return {
         "output_file": output_file,
         "blender_path": blender_path,
@@ -48,7 +48,8 @@ def render_frame(
 
     ctx.actions.run_shell(
         outputs = [out['output_file']],
-        inputs = [renderer, blend],
+        inputs = [blend],
+        tools = [renderer],
         command = cmd,
         mnemonic = "Blender",
         progress_message = "Rendering frame {frame} of {blend}".format(
