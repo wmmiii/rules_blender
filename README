@@ -1,0 +1,23 @@
+# Rules Blender
+
+This repository provides a set of Bazel rules to render Blender files.
+
+## Usage
+
+After including rules_blender in your project you can use these rules to transform Blender files into rasterized images:
+
+```
+load("@rules_blender//:blender.bzl", "blender_image")
+
+blender_image(
+    name = "rendered_frame",
+    srcs = "//:my_file.blend",
+    frame = 5,
+)
+```
+
+See the [examples](examples) directory for more details!
+
+## Disclaimer
+
+Please note this is a joke ruleset and should not be used in any serious project.
