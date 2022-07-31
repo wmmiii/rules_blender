@@ -93,7 +93,7 @@ blender_image = rule(
             default = 0,
         ),
         "_renderer": attr.label(
-            default = Label("@blender//:blender"),
+            default = Label("@blender_linux_64//:blender"),
             allow_single_file = True,
             executable = True,
             cfg = "exec",
@@ -162,13 +162,13 @@ blender_video = rule(
             mandatory = True,
         ),
         "_renderer": attr.label(
-            default = Label("@blender//:blender"),
+            default = Label("@blender_linux_64//:blender"),
             allow_single_file = True,
             executable = True,
             cfg = "exec",
         ),
         "_compositor": attr.label(
-            default = Label("@ffmpeg//:ffmpeg"),
+            default = Label("@ffmpeg_linux_amd64//:ffmpeg"),
             allow_single_file = True,
             executable = True,
             cfg = "exec",
