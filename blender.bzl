@@ -34,7 +34,7 @@ def declare_output(ctx, frame):
 
 def render_frame(
         ctx,
-        renderer,
+        blender_file,
         blend,
         frame,
         out):
@@ -42,7 +42,7 @@ def render_frame(
 
     Args:
         ctx: The Bazel context.
-        renderer: The Blender executable.
+        blender_file: The file of the Blender executable.
         blend: The .blend file to render.
         frame: The frame number to render.
         out: The output file dict generated with the `declare_output` function.
@@ -57,7 +57,8 @@ def render_frame(
     ctx.actions.run(
         outputs = [out["output_file"]],
         inputs = [blend],
-        executable = renderer,
+        tools = [blender_file],
+        executable = blender_file,
         arguments = [args],
         mnemonic = "Blender",
         progress_message = "Rendering frame {frame} of {blend}".format(
@@ -67,13 +68,15 @@ def render_frame(
     )
 
 def _blender_image(ctx):
+    toolchain = ctx.toolchains["@rules_blender//tools:toolchain_type"]
+
     frame = ctx.attr.frame
 
     out = declare_output(ctx, frame)
 
     render_frame(
         ctx,
-        ctx.files._renderer[0],
+        toolchain.rulesblenderinfo.blender.files.to_list()[0],
         ctx.files.srcs[0],
         frame,
         out,
@@ -92,23 +95,22 @@ blender_image = rule(
         "frame": attr.int(
             default = 0,
         ),
-        "_renderer": attr.label(
-            default = Label("@blender_linux_64//:blender"),
-            allow_single_file = True,
-            executable = True,
-            cfg = "exec",
-        ),
     },
+    toolchains = [
+        "@rules_blender//tools:toolchain_type",
+    ],
 )
 
 def _blender_video(ctx):
+    toolchain = ctx.toolchains["@rules_blender//tools:toolchain_type"]
+
     frames = []
     for frame in range(ctx.attr.start_frame, ctx.attr.end_frame + 1):
         out = declare_output(ctx, frame)
 
         render_frame(
             ctx,
-            ctx.files._renderer[0],
+            toolchain.rulesblenderinfo.blender.files.to_list()[0],
             ctx.files.srcs[0],
             frame,
             out,
@@ -124,8 +126,6 @@ def _blender_video(ctx):
     out_name = "{name}.mp4".format(name = ctx.label.name)
     output_file = ctx.actions.declare_file(out_name)
 
-    compositor = ctx.files._compositor[0]
-
     args = ctx.actions.args()
     args.add("-f", "image2")
     args.add("-framerate", ctx.attr.framerate)
@@ -134,10 +134,13 @@ def _blender_video(ctx):
     args.add("-crf", "22")
     args.add(output_file.path)
 
+    ffmpeg_file = toolchain.rulesblenderinfo.ffmpeg.files.to_list()[0]
+
     ctx.actions.run(
         outputs = [output_file],
         inputs = frames,
-        executable = compositor,
+        executable = ffmpeg_file,
+        tools = [ffmpeg_file],
         arguments = [args],
         mnemonic = "FFmpeg",
     )
@@ -161,17 +164,8 @@ blender_video = rule(
         "framerate": attr.int(
             mandatory = True,
         ),
-        "_renderer": attr.label(
-            default = Label("@blender_linux_64//:blender"),
-            allow_single_file = True,
-            executable = True,
-            cfg = "exec",
-        ),
-        "_compositor": attr.label(
-            default = Label("@ffmpeg_linux_amd64//:ffmpeg"),
-            allow_single_file = True,
-            executable = True,
-            cfg = "exec",
-        ),
     },
+    toolchains = [
+        "@rules_blender//tools:toolchain_type",
+    ],
 )

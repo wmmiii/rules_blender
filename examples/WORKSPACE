@@ -6,3 +6,7 @@ local_repository(
 load("@rules_blender//:repositories.bzl", "rules_blender_dependencies")
 
 rules_blender_dependencies()
+
+register_toolchains(
+    "@rules_blender//tools:rules_blender_linux_64_toolchain",
+)
