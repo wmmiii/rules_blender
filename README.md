@@ -2,6 +2,25 @@
 
 This repository provides a set of Bazel rules to render Blender files.
 
+## Setup
+
+Add the following to your project's WORKSPACE:
+```
+http_archive(
+    name = "rules_blender",
+    sha256 = "REPLACE WITH SHA",
+    urls = ["REPLACE WITH GITHUB ZIP URL"],
+)
+
+load("@rules_blender//:repositories.bzl", "rules_blender_dependencies")
+
+rules_blender_dependencies()
+
+register_toolchains(
+    "@rules_blender//tools:rules_blender_linux_64_toolchain",
+)
+```
+
 ## Usage
 
 After including rules_blender in your project you can use these rules to transform Blender files into rasterized images:

@@ -90,9 +90,11 @@ blender_image = rule(
     implementation = _blender_image,
     attrs = {
         "srcs": attr.label(
+            doc = "The .blend file to render.",
             allow_files = [".blend"],
         ),
         "frame": attr.int(
+            doc = "[optional] Which frame number to render.",
             default = 0,
         ),
     },
@@ -153,15 +155,19 @@ blender_video = rule(
     implementation = _blender_video,
     attrs = {
         "srcs": attr.label(
+            doc = "The .blend file to render.",
             allow_files = [".blend"],
         ),
         "start_frame": attr.int(
+            doc = "[optional] The start frame to render. Defaults to 0.",
             default = 0,
         ),
         "end_frame": attr.int(
+            doc = "The final frame in the render inclusive. This should be the same as the end of the timeline in the .blend file",
             mandatory = True,
         ),
         "framerate": attr.int(
+            doc = "The framerate of the project in the .blend file.",
             mandatory = True,
         ),
     },
